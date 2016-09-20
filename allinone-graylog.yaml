@@ -1,0 +1,63 @@
+
+apiVersion: v1
+kind: Service
+metadata: 
+  name: graylog-service
+spec:
+  selector:
+    app: graylog2-allinone
+  type: NodePort  
+  ports: 
+    - name: web-port
+      port: 9000
+      targetPort: 9000
+      nodePort: 30010
+    - name: gelf-port
+      port: 12201
+      targetPort: 12201
+      nodePort: 30011
+    - name: udp-test-port
+      port: 5555
+      targetPort: 5555
+      nodePort: 30012
+      protocol: UDP
+
+--- 
+apiVersion: v1
+kind: Pod
+metadata:
+  name: graylog2-allinone
+  labels:
+    app: graylog2-allinone
+spec:
+  containers:
+    - name: graylog
+      image: docker.io/graylog2/allinone:latest 
+      ports:
+        - containerPort: 9000
+        - containerPort: 12201
+        - containerPort: 5555
+          protocol: UDP
+      volumeMounts:
+        - mountPath: /graylog/data
+          name: graylog-data
+        - mountPath: /graylog/logs
+          name: graylog-log
+      env:
+        - name: GRAYLOG_PASSWORD 
+          value: Medishare@412   
+        - name : GRAYLOG_NODE_ID
+          value:  
+        - name : GRAYLOG_SERVER_SECRET 
+          value:
+        - name : GRAYLOG_TIMEZONE   # timezone
+          value: 
+        - name: GRAYLOG_SMTP_SERVER  #email server
+          value:
+  volumes:
+    - name: graylog-data
+      hostPath: 
+        path: /var/opt/graylog/data
+    - name: graylog-log
+      hostPath:
+        path: /var/log/graylog
